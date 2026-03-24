@@ -1155,6 +1155,8 @@ def load_image_and_model(device: torch.device, min_conf: float = 0.70):
                 f for f in os.listdir(sample_dir)
                 if f.lower().endswith(('.jpeg', '.jpg', '.png'))
             ])
+            import random
+            random.shuffle(jpegs)
             print(f"Found {sample_dir} ({len(jpegs)} images)")
             for fname in jpegs:
                 try:
