@@ -1,5 +1,12 @@
-# Heatmaps + step fidelity
-python unified_ig_v2.py --viz --viz-fidelity --device cpu
+# Region-based with SLIC (best, needs scikit-image)
+python unified_ig_v2.py --region-insdel --viz-region-insdel
 
-# Custom output path
-python unified_ig_v2.py --viz --viz-path figures/fig3_heatmaps.png --viz-fidelity
+# Grid fallback (no extra deps)
+python  uigv3.py --region-insdel --no-slic --patch-size 14
+
+# Both pixel and region side-by-side
+python  uigv3.py --insdel --region-insdel --viz-insdel --viz-region-insdel
+
+# Custom grid size (larger patches = fewer regions = coarser test)
+python uigv3.py --region-insdel --no-slic --patch-size 40 --viz --viz-path my_heatmaps.png
+python uigv4.py --region-insdel --no-slic --patch-size 40 --viz --viz-path my_heatmaps.png
