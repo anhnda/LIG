@@ -926,7 +926,7 @@ def run_experiment(N: int = 50, device: Optional[torch.device] = None,
     print(f"N = {N} interpolation steps\n")
     print(f"{'Method':<16} {'𝒬':>8} {'CV²(φ)':>10} {'Σ Aᵢ':>10} {'Time':>8}")
     print("─" * 56)
-
+    G = 16
     methods = [
         standard_ig(model, x, baseline, N),
         idgi(model, x, baseline, N),
@@ -935,7 +935,7 @@ def run_experiment(N: int = 50, device: Optional[torch.device] = None,
         joint_ig(model, x, baseline, N,
             n_alternating=2,
             tau=0.005, mu_iter=300,
-            path_iter=G)   # path_iter=G so every group gets probed once per run
+            path_iter=G)   
     ]
 
     for m in methods:
