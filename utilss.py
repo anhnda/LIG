@@ -572,3 +572,34 @@ def compute_Var_nu(d: torch.Tensor, delta_f: torch.Tensor,
     var_nu = (nu * (phi - phi_bar) ** 2).sum()
 
     return float(var_nu)
+
+
+def compute_CV2(d: torch.Tensor, delta_f: torch.Tensor,
+                mu: torch.Tensor) -> float:
+    """CV²(φ) under effective measure ν_k ∝ μ_k Δf_k²."""
+    valid = delta_f.abs() > 1e-12
+    if valid.sum() < 2:
+        return 0.0
+    safe_df = torch.where(valid, delta_f, torch.ones_like(delta_f))
+    phi = torch.where(valid, d / safe_df, torch.ones_like(d))
+    nu = mu * delta_f ** 2
+    nu_sum = nu.sum()
+    if nu_sum < 1e-15:
+        return 0.0
+    w = nu / nu_sum
+    mean_phi = (w * phi).sum()
+    var_phi = (w * (phi - mean_phi) ** 2).sum()
+    if mean_phi.abs() < 1e-12:
+        return float("inf")
+    return float(var_phi / mean_phi ** 2)
+
+
+def compute_Q(d: torch.Tensor, delta_f: torch.Tensor,
+              mu: torch.Tensor) -> float:
+    """𝒬 = (Σ μ_k d_k Δf_k)² / [(Σ μ_k d_k²)(Σ μ_k Δf_k²)]"""
+    num = (mu * d * delta_f).sum() ** 2
+    den1 = (mu * d ** 2).sum()
+    den2 = (mu * delta_f ** 2).sum()
+    if den1 < 1e-15 or den2 < 1e-15:
+        return 0.0
+    return float(num / (den1 * den2))
