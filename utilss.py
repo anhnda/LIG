@@ -603,3 +603,42 @@ def compute_Q(d: torch.Tensor, delta_f: torch.Tensor,
     if den1 < 1e-15 or den2 < 1e-15:
         return 0.0
     return float(num / (den1 * den2))
+
+def compute_all_metrics(d: torch.Tensor, delta_f: torch.Tensor,
+                        mu: torch.Tensor) -> tuple[float, float, float]:
+    """
+    Compute (Var_ν, CV², Q) in a single pass.
+
+    Args:
+        d:       (N,) d_k = ∇f(γ_k) · Δγ_k
+        delta_f: (N,) Δf_k = f(γ_{k+1}) - f(γ_k)
+        mu:      (N,) attribution measure (sums to 1)
+
+    Returns:
+        (Var_nu, CV2, Q)
+    """
+    # φ_k = d_k / Δf_k
+    valid = delta_f.abs() > 1e-12
+    safe_df = torch.where(valid, delta_f, torch.ones_like(delta_f))
+    phi = torch.where(valid, d / safe_df, torch.ones_like(d))
+
+    # ν_k = μ_k Δf_k² / Σ_j μ_j Δf_j²
+    nu = mu * delta_f ** 2
+    nu_sum = nu.sum()
+    if nu_sum < 1e-15:
+        return 0.0, 0.0, 1.0
+
+    nu = nu / nu_sum
+
+    # Var_ν(φ) = Σ_k ν_k (φ_k - φ̄_ν)²
+    phi_bar = (nu * phi).sum()
+    var_nu = float((nu * (phi - phi_bar) ** 2).sum())
+
+    # CV²(φ) = Var_ν(φ) / φ̄²
+    phi_bar_val = float(phi_bar)
+    cv2 = var_nu / (phi_bar_val ** 2) if abs(phi_bar_val) > 1e-12 else 0.0
+
+    # Q = 1 / (1 + CV²)
+    Q = 1.0 / (1.0 + cv2)
+
+    return var_nu, cv2, Q
