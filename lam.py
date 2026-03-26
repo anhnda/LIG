@@ -651,9 +651,10 @@ def joint_ig(model: nn.Module, x: torch.Tensor, baseline: torch.Tensor,
              mu_iter: int = 300, path_iter: int = 10,
              ) -> AttributionResult:
     """
-    Joint optimisation: alternating min of Var_ν(φ) over (γ, μ).
+    Joint optimisation: alternating min of CV²(φ) over (γ, μ).
 
-    Each alternating step decreases Var_ν (monotone convergence).
+    Regression guard: path optimisation only takes effect if it
+    improves Q over the current best.  This guarantees Joint ≥ μ-Optimized.
 
     Uses batched evaluation for path assessment.
     """
@@ -668,75 +669,101 @@ def joint_ig(model: nn.Module, x: torch.Tensor, baseline: torch.Tensor,
     gamma_pts = [baseline + (k / N) * delta_x for k in range(N + 1)]
     mu = torch.full((N,), 1.0 / N, device=device)
     Q_history = []
-    grads = []
+
+    # Track the best state seen so far
+    best_Q = -1.0
+    best_gamma_pts = gamma_pts
+    best_mu = mu
+    best_d_list = []
+    best_df_list = []
+    best_f_vals = []
+    best_gnorms = []
+    best_grads = []
+
+    def _evaluate_path(gp, mu_vec):
+        """Batched evaluation of a path. Returns (d_list, df_list, f_vals, gnorms, grads, d_arr, df_arr)."""
+        ap = torch.cat(gp, dim=0)
+        with torch.no_grad():
+            fa = model(ap)
+        fv = fa.tolist()
+        pn = ap[:N]
+        gb = _gradient_batch(model, pn)
+        sb = ap[1:] - ap[:N]
+        dt = (gb * sb).view(N, -1).sum(dim=1)
+        dl = dt.tolist()
+        dfl = (fa[1:] - fa[:N]).tolist()
+        gn = gb.view(N, -1).norm(dim=1).tolist()
+        gr = [gb[k:k+1] for k in range(N)]
+        da = torch.tensor(dl, device=device)
+        dfa = torch.tensor(dfl, device=device)
+        return dl, dfl, fv, gn, gr, da, dfa
 
     for s in range(n_alternating):
-        # ── Evaluate current path (batched) ──
-        all_pts = torch.cat(gamma_pts, dim=0)            # (N+1, C, H, W)
-        with torch.no_grad():
-            f_all = model(all_pts)                        # (N+1,)
-        f_vals = f_all.tolist()
+        # ── Evaluate current path ──
+        d_list, df_list, f_vals, gnorms, grads, d_arr, df_arr = \
+            _evaluate_path(gamma_pts, mu)
 
-        pts_N = all_pts[:N]
-        grads_batch = _gradient_batch(model, pts_N)       # (N, C, H, W)
-        steps_batch = all_pts[1:] - all_pts[:N]           # (N, C, H, W)
-
-        d_tensor = (grads_batch * steps_batch).view(N, -1).sum(dim=1)
-        d_list = d_tensor.tolist()
-        df_list = (f_all[1:] - f_all[:N]).tolist()
-        gnorms = grads_batch.view(N, -1).norm(dim=1).tolist()
-        # Keep grads as list of (1, C, H, W) for final attribution
-        grads = [grads_batch[k:k+1] for k in range(N)]
-
-        d_arr = torch.tensor(d_list, device=device)
-        df_arr = torch.tensor(df_list, device=device)
-
-        # Phase 1: optimise μ  (Var_ν objective)
+        # Phase 1: optimise μ
         mu = optimize_mu(d_arr, df_arr, tau=tau, n_iter=mu_iter)
         var_mu, cv2_mu, Q_mu = compute_all_metrics(d_arr, df_arr, mu)
 
+        # Update best if improved
+        if Q_mu > best_Q:
+            best_Q = Q_mu
+            best_gamma_pts = gamma_pts
+            best_mu = mu.clone()
+            best_d_list, best_df_list = d_list, df_list
+            best_f_vals, best_gnorms, best_grads = f_vals, gnorms, grads
+
         # Phase 2: optimise path (skip on last iteration)
+        Q_path = Q_mu
         if s < n_alternating - 1:
-            gamma_pts = optimize_path(
+            new_gamma_pts = optimize_path(
                 model, x, baseline, mu, N=N, G=G,
                 patch_size=patch_size, n_iter=path_iter)
 
-            # Re-evaluate on new path (batched)
-            all_pts = torch.cat(gamma_pts, dim=0)
-            with torch.no_grad():
-                f_all = model(all_pts)
-            f_vals = f_all.tolist()
+            # Evaluate the new path
+            new_d_list, new_df_list, new_f_vals, new_gnorms, new_grads, \
+                new_d_arr, new_df_arr = _evaluate_path(new_gamma_pts, mu)
+            _, _, Q_new_path = compute_all_metrics(new_d_arr, new_df_arr, mu)
+            Q_path = Q_new_path
 
-            pts_N = all_pts[:N]
-            grads_batch = _gradient_batch(model, pts_N)
-            steps_batch = all_pts[1:] - all_pts[:N]
+            # Regression guard: only accept if better
+            if Q_new_path > best_Q:
+                gamma_pts = new_gamma_pts
+                d_list, df_list = new_d_list, new_df_list
+                f_vals, gnorms, grads = new_f_vals, new_gnorms, new_grads
+                d_arr, df_arr = new_d_arr, new_df_arr
 
-            d_tensor = (grads_batch * steps_batch).view(N, -1).sum(dim=1)
-            d_list = d_tensor.tolist()
-            df_list = (f_all[1:] - f_all[:N]).tolist()
-            gnorms = grads_batch.view(N, -1).norm(dim=1).tolist()
-            grads = [grads_batch[k:k+1] for k in range(N)]
-
-            d_arr = torch.tensor(d_list, device=device)
-            df_arr = torch.tensor(df_list, device=device)
-            var_path, cv2_path, Q_path = compute_all_metrics(d_arr, df_arr, mu)
-        else:
-            var_path, Q_path = var_mu, Q_mu
+                best_Q = Q_new_path
+                best_gamma_pts = new_gamma_pts
+                best_mu = mu.clone()
+                best_d_list, best_df_list = new_d_list, new_df_list
+                best_f_vals, best_gnorms, best_grads = new_f_vals, new_gnorms, new_grads
+            else:
+                # Revert to best known state
+                gamma_pts = best_gamma_pts
+                mu = best_mu.clone()
 
         Q_history.append({
             "iteration": s,
-            "Var_after_mu": float(var_mu), "Q_after_mu": float(Q_mu),
-            "Var_after_path": float(var_path), "Q_after_path": float(Q_path),
+            "Q_after_mu": float(Q_mu),
+            "Q_after_path": float(Q_path),
+            "best_Q": float(best_Q),
         })
 
-    # Final attributions
+    # Use the best state for final attributions
+    gamma_pts = best_gamma_pts
+    mu = best_mu
+    grads = best_grads
+
     attr = torch.zeros_like(x)
     for k in range(N):
         attr += mu[k] * grads[k] * (gamma_pts[k + 1] - gamma_pts[k])
     attr = _rescale(attr, target)
 
-    return _pack_result("Joint", attr, d_list, df_list, f_vals,
-                        gnorms, mu, N, t0, Q_history)
+    return _pack_result("Joint", attr, best_d_list, best_df_list,
+                        best_f_vals, best_gnorms, mu, N, t0, Q_history)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
