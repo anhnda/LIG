@@ -26,8 +26,8 @@ where φ_k = d_k / Δf_k is the ratio of gradient-predicted to actual output cha
 | Standard IG | straight line | uniform | nothing |
 | IDGI | straight line | μ_k ∝ \|Δf_k\| | μ heuristic |
 | Guided IG | low-grad-first | uniform | γ heuristic |
-| μ-Optimised | straight line | optimal | min CV²(φ) over μ |
-| **Joint (ours)** | **optimal** | **optimal** | **alternating min over (γ, μ)** |
+| μ-LAM (ours) | straight line | optimal | min CV²(φ) over μ |
+| **Joint-LAM  (ours)** | **optimal** | **optimal** | **alternating min over (γ, μ)** |
 
 ## Results
 
