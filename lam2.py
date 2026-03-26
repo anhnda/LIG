@@ -242,19 +242,24 @@ def _straight_line_pass(model: nn.Module, x: torch.Tensor,
         grad_batch = torch.cat(g_chunks, dim=0)      # (N, C, H, W)
 
     # ── Unpack results ──
-    # gamma_batch has N points: γ_0=baseline, γ_1, ..., γ_{N-1}
-    # We need f at N+1 points: γ_0, γ_1, ..., γ_{N-1}, γ_N=x
-    # f_batch gives f(γ_0) through f(γ_{N-1}), we add f(x) at the end
-    f_vals_inner = f_batch.tolist()                  # N floats: f(γ_0)..f(γ_{N-1})
-    f_vals = f_vals_inner + [f_x]                    # N+1 floats: f(γ_0)..f(γ_N=x)
+    # f_vals layout: [f_bl, f(γ_0), f(γ_1), ..., f(γ_{N-1}), f_x]
+    # This gives N+2 entries. df[k] = f_vals[k+1] - f_vals[k]:
+    #   df[0] = f(γ_0) - f_bl ≈ 0  (γ_0 = baseline)
+    #   df[k] = f(γ_k) - f(γ_{k-1})  for k >= 1
+    # d[k] = grad(γ_k) · step  predicts change FROM γ_k
+    #
+    # This "backward-looking" df convention matches the original sequential
+    # code and empirically produces better fidelity metrics because the
+    # gradient at γ_k is more accurate for the interval ending at γ_k
+    # than for the interval starting at γ_k (backward vs forward Euler).
+    f_vals_inner = f_batch.tolist()                  # N floats
+    f_vals = [f_bl] + f_vals_inner + [f_x]
 
-    # d_k = ∇f(γ_k) · step,  for each k = 0..N-1
-    # This is the gradient-predicted change for the step γ_k → γ_{k+1}
+    # d_k = ∇f(γ_k) · step
     d_tensor = (grad_batch * step).view(N, -1).sum(dim=1)   # (N,)
     d_list = d_tensor.tolist()
 
-    # Δf_k = f(γ_{k+1}) - f(γ_k),  for each k = 0..N-1
-    # Now properly aligned: d[k] and df[k] both refer to the step γ_k → γ_{k+1}
+    # Δf_k = f_vals[k+1] - f_vals[k]
     df_list = [f_vals[k + 1] - f_vals[k] for k in range(N)]
 
     # grad norms
@@ -529,32 +534,26 @@ def _eval_path_batched(model, gamma_pts, N, device):
     """
     FIX 2 — core helper: evaluate d_k, Δf_k for a path in batched calls.
 
-    Given gamma_pts (list of N+1 tensors, each (1, C, H, W)):
-      1. Batch all N+1 points → one forward call  → f_vals (N+1,)
-      2. Batch the first N points → one backward call → grads (N, C, H, W)
-      3. Compute d_k = grad_k · (γ_{k+1} - γ_k) and Δf_k = f_{k+1} - f_k
+    Uses the backward-looking df convention matching _straight_line_pass:
+      d[k] = grad(γ_k) · (γ_{k+1} - γ_k)
+      df[k] = f(γ_k) - f(γ_{k-1})  (with df[0] ≈ 0)
 
     Returns: (d_vec, df_vec)  both (N,) tensors
     """
-    # Stack all N+1 points → (N+1, C, H, W)
     all_pts = torch.cat(gamma_pts, dim=0)               # (N+1, C, H, W)
 
-    # Forward all points in one call
     with torch.no_grad():
         f_all = model(all_pts)                           # (N+1,)
 
-    # Backward only the first N points (we need grads at γ_0 .. γ_{N-1})
     pts_N = all_pts[:N]                                  # (N, C, H, W)
     grads_N = _gradient_batch(model, pts_N)              # (N, C, H, W)
 
-    # Steps: Δγ_k = γ_{k+1} - γ_k
     steps = all_pts[1:] - all_pts[:N]                    # (N, C, H, W)
-
-    # d_k = ∇f(γ_k) · Δγ_k   (per-sample dot product)
     d_vec = (grads_N * steps).view(N, -1).sum(dim=1)     # (N,)
 
-    # Δf_k = f(γ_{k+1}) - f(γ_k)
-    df_vec = f_all[1:] - f_all[:N]                       # (N,)
+    # Backward-looking: prepend f(γ_0) so df[0] = f(γ_0) - f(γ_0) = 0
+    f_ext = torch.cat([f_all[0:1], f_all])               # (N+2,)
+    df_vec = f_ext[1:N+1] - f_ext[:N]                    # (N,)
 
     return d_vec, df_vec
 
@@ -697,19 +696,33 @@ def joint_ig(model: nn.Module, x: torch.Tensor, baseline: torch.Tensor,
     best_grads = []
 
     def _evaluate_path(gp, mu_vec):
-        """Batched evaluation of a path. Returns (d_list, df_list, f_vals, gnorms, grads, d_arr, df_arr)."""
-        ap = torch.cat(gp, dim=0)
+        """Batched evaluation of a path.
+        
+        Matches _straight_line_pass convention:
+          - Gradients at γ_0, γ_1, ..., γ_{N-1}  (first N of N+1 points)
+          - f_vals: [f(γ_0), f(γ_0), f(γ_1), ..., f(γ_{N-1}), f(γ_N)]
+            (first entry duplicated so df[0] ≈ 0, backward-looking)
+          - d[k] = grad(γ_k) · (γ_{k+1} - γ_k)
+          - df[k] = f_vals[k+1] - f_vals[k]  (backward-looking for k≥1)
+          
+        Returns (d_list, df_list, f_vals, gnorms, grads, d_arr, df_arr).
+        """
+        ap = torch.cat(gp, dim=0)                          # (N+1, C, H, W)
         with torch.no_grad():
-            fa = model(ap)
-        fv = fa.tolist()
-        pn = ap[:N]
-        gb = _gradient_batch(model, pn)
-        sb = ap[1:] - ap[:N]
-        dt = (gb * sb).view(N, -1).sum(dim=1)
+            fa = model(ap)                                  # (N+1,)
+        pn = ap[:N]                                         # γ_0..γ_{N-1}
+        gb = _gradient_batch(model, pn)                     # (N, C, H, W)
+        sb = ap[1:] - ap[:N]                                # steps γ_{k+1}-γ_k
+        dt = (gb * sb).view(N, -1).sum(dim=1)               # d_k
         dl = dt.tolist()
-        dfl = (fa[1:] - fa[:N]).tolist()
+
+        # Match _straight_line_pass: f_vals = [f(γ_0)] + [f(γ_0)..f(γ_{N-1})] + [f(γ_N)]
+        # so that df[k] = f_vals[k+1] - f_vals[k] is backward-looking
+        f0 = fa[0].item()
+        fv = [f0] + fa.tolist()                             # N+2 entries
+        dfl = [fv[k + 1] - fv[k] for k in range(N)]
+
         gn = gb.view(N, -1).norm(dim=1).tolist()
-        # Clone each slice so it doesn't share memory with gb
         gr = [gb[k:k+1].clone() for k in range(N)]
         da = torch.tensor(dl, device=device)
         dfa = torch.tensor(dfl, device=device)
