@@ -553,41 +553,60 @@ def _eval_path_batched(model, gamma_pts, N, device):
     return d_vec, df_vec
 
 
+def _compute_neg_Q(d_v: torch.Tensor, df_v: torch.Tensor,
+                   mu: torch.Tensor) -> float:
+    """
+    Compute 1 - Q for path optimisation.
+
+    Why not Var_ν?  The path changes both d_k and Δf_k, so Var_ν(φ) = 0
+    can be achieved trivially by making all φ_k equal to some constant c ≠ 1
+    (e.g., routing through flat regions where d_k ≈ 0 and Δf_k ≈ 0).
+    Q = 1/(1+CV²) penalises this because CV² = Var/φ̄² blows up when φ̄→0.
+
+    For μ-optimisation (§8), Var_ν is correct because {d_k, Δf_k} are fixed
+    and φ̄ only changes through the ν weights.  For path optimisation the
+    path itself controls the numerics, so we need the scale-aware Q metric.
+    """
+    _, _, Q = compute_all_metrics(d_v, df_v, mu)
+    return 1.0 - Q     # minimise → maximise Q
+
+
 def optimize_path(model, x, baseline, mu, N=50, G=16, patch_size=14,
                   n_iter=15, lr=0.05):
     """
     Optimise path via grouped velocity scheduling.
 
-    Objective: Var_ν(φ), matching optimize_mu.
+    Objective: maximise Q (minimise 1-Q), which prevents the path from
+    collapsing to constant-but-wrong fidelity.
     Softmax over time dim per group → normalisation built in.
 
-    FIX 2: _var_of uses _eval_path_batched (2 model calls instead of 2N).
+    FIX 2: _obj_of uses _eval_path_batched (2 model calls instead of 2N).
     """
     device = x.device
     delta_x = x - baseline
     gmap = _build_spatial_groups(model, x, baseline, G, patch_size)
 
     log_V = torch.zeros(G, N, device=device)
-    best_var, best_logV = float("inf"), log_V.clone()
+    best_obj, best_logV = float("inf"), log_V.clone()
 
-    def _var_of(lv):
+    def _obj_of(lv):
         V = torch.softmax(lv, dim=1) * N
         gp = _build_path_2d(baseline, delta_x, V, gmap, N)
         d_v, df_v = _eval_path_batched(model, gp, N, device)
-        return compute_Var_nu(d_v, df_v, mu)
+        return _compute_neg_Q(d_v, df_v, mu)
 
     eps = 0.1
     for it in range(n_iter):
-        cur_var = _var_of(log_V)
-        if cur_var < best_var:
-            best_var, best_logV = cur_var, log_V.clone()
+        cur_obj = _obj_of(log_V)
+        if cur_obj < best_obj:
+            best_obj, best_logV = cur_obj, log_V.clone()
 
         # Probe one group per iteration (cycle), all N time steps
         g = it % G
         grad_lv = torch.zeros_like(log_V)
         for k in range(N):
             log_V[g, k] += eps
-            grad_lv[g, k] = (_var_of(log_V) - cur_var) / eps
+            grad_lv[g, k] = (_obj_of(log_V) - cur_obj) / eps
             log_V[g, k] -= eps
 
         log_V = log_V - lr * grad_lv
