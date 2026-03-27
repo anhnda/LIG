@@ -49,7 +49,7 @@ import torch
 import torch.nn as nn
 
 # ── Import shared infrastructure from unified_ig ──────────────────────────
-from unified_ig import (
+from lam import (
     _straight_line_pass,
     _build_spatial_groups,
     _build_path_2d,
