@@ -651,7 +651,7 @@ def run_all_methods(
 # ═════════════════════════════════════════════════════════════════════════════
 
 def run_experiment(N=50, device=None, min_conf=0.70, guided_init=False,
-                   lam=1.0, tau=0.01):
+                   lam=1.0, tau=0.01, skip=0):
     """Full experiment: load model/image, run all 6 methods, print table."""
     from lam import load_image_and_model
     from utilss import get_device
@@ -660,7 +660,7 @@ def run_experiment(N=50, device=None, min_conf=0.70, guided_init=False,
         device = get_device()
 
     print("Loading ResNet-50 and image...")
-    model, x, baseline, info = load_image_and_model(device, min_conf)
+    model, x, baseline, info = load_image_and_model(device, min_conf, skip=skip)
 
     f_x = _forward_scalar(model, x)
     f_bl = _forward_scalar(model, baseline)
@@ -750,6 +750,8 @@ if __name__ == "__main__":
                         help="Use grid patches instead of SLIC superpixels")
     parser.add_argument("--seed", type=int, default=42,
                         help="Random seed for reproducibility")
+    parser.add_argument("--skip", type=int, default=0)
+              
     
     args = parser.parse_args()
     set_seed(args.seed)
@@ -763,7 +765,7 @@ if __name__ == "__main__":
     device = get_device(force=args.device)
     results, methods, model, x, baseline, info = run_experiment(
         N=args.steps, device=device, min_conf=args.min_conf,
-        guided_init=args.guided_init, lam=args.lam, tau=args.tau)
+        guided_init=args.guided_init, lam=args.lam, tau=args.tau, skip=args.skip)
 
     # ── Insertion / Deletion ──
     if args.insdel or args.viz_insdel:

@@ -800,7 +800,7 @@ def joint_ig(model: nn.Module, x: torch.Tensor, baseline: torch.Tensor,
 # §12  IMAGE LOADING
 # ═════════════════════════════════════════════════════════════════════════════
 
-def load_image_and_model(device: torch.device, min_conf: float = 0.70):
+def load_image_and_model(device: torch.device, min_conf: float = 0.70, skip=0):
     backbone = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
     backbone = backbone.to(device).eval()
     for p in backbone.parameters():
@@ -826,6 +826,7 @@ def load_image_and_model(device: torch.device, min_conf: float = 0.70):
                             if f.lower().endswith(('.jpeg', '.jpg', '.png'))])
             random.shuffle(jpegs)
             print(f"Found {sample_dir} ({len(jpegs)} images)")
+            cskip = 0
             for fname in jpegs:
                 try:
                     img = Image.open(os.path.join(sample_dir, fname)).convert("RGB")
@@ -836,6 +837,9 @@ def load_image_and_model(device: torch.device, min_conf: float = 0.70):
                     p = F.softmax(backbone(xc), dim=-1)
                     c, pr = p[0].max(0)
                 if c.item() >= min_conf:
+                    cskip += 1
+                    if skip > 0 and cskip <= skip:
+                        continue
                     x, pc, cf = xc, pr.item(), c.item()
                     source = f"{sample_dir}/{fname}"
                     print(f"  ✓ {fname} → class={pc}, conf={cf:.4f}")
