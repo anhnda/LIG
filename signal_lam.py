@@ -710,7 +710,6 @@ if __name__ == "__main__":
     import argparse
     import json
     from utilss import set_seed
-    set_seed(42)
     parser = argparse.ArgumentParser(
         description="Signal-Harvesting IG — unified variational framework")
     parser.add_argument("--json", type=str, default=None,
@@ -749,7 +748,11 @@ if __name__ == "__main__":
                         help="Grid patch size for region ins/del")
     parser.add_argument("--no-slic", action="store_true",
                         help="Use grid patches instead of SLIC superpixels")
+    parser.add_argument("--seed", type=int, default=42,
+                        help="Random seed for reproducibility")
+    
     args = parser.parse_args()
+    set_seed(args.seed)
 
     from utilss import (
         get_device, run_insertion_deletion, run_region_insertion_deletion,
