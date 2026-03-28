@@ -11,3 +11,5 @@ python  uigv3.py --insdel --region-insdel --viz-insdel --viz-region-insdel
 python uigv3.py --region-insdel --no-slic --patch-size 40 --viz --viz-path my_heatmaps.png
 python uigv4.py --region-insdel --no-slic --patch-size 40 --viz --viz-path my_heatmaps.png
 python uigv4o.py --region-insdel --no-slic --patch-size 40 --viz --viz-path my_heatmaps.png
+
+Source: ./sample_imagenet1k/n03187595_dial_telephone.JPEG   seed 6                                            
