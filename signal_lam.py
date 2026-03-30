@@ -448,7 +448,11 @@ def optimize_path_signal_harvesting(
             grad_V[g, k] = (obj_plus - obj) / eps
             V[g, k] -= eps
             grad_norms_per_group.append(abs(grad_V[g, k].item()))
-
+        # After computing grad_V, before the update:
+        max_grad_norm = 2.0
+        gn = grad_V.norm()
+        if gn > max_grad_norm:
+            grad_V = grad_V * (max_grad_norm / gn)
         V = V - lr * grad_V
         V = torch.clamp(V, min=0.01)
 
