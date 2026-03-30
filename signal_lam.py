@@ -808,8 +808,8 @@ def _signal_harvesting_path_obj(
 
 def optimize_path_signal_harvesting(
     model, x, baseline, mu, N=50, G=16, patch_size=14,
-    n_iter=15, lr=0.01, lam=1.0,
-    momentum=0.7, n_basis=5,
+    n_iter=15, lr=0.002, lam=1.0,
+    momentum=0.5, n_basis=5,
     early_stop_patience=10, early_stop_rtol=0.01, verbose=True,
 ):
     device = x.device
@@ -819,16 +819,11 @@ def optimize_path_signal_harvesting(
     basis = torch.stack([
         torch.cos(torch.arange(N, device=device, dtype=torch.float32) * j * 3.14159 / N)
         for j in range(n_basis)
-    ])  # (n_basis, N)
-
-    # Normalize each basis vector so perturbations have uniform scale
+    ])
     basis = basis / basis.norm(dim=1, keepdim=True)
 
     A = torch.zeros(G, n_basis, device=device)
-    # Init so that A @ basis ≈ 1 everywhere
-    # basis[0] after normalization = cos(0)/‖cos(0)‖ = 1/√N for all entries
-    # So A[g,0] = √N gives V ≈ 1
-    A[:, 0] = basis[0].sum()  # = √N for normalized constant basis
+    A[:, 0] = basis[0].sum()
 
     best_obj = float("inf")
     best_A = A.clone()
@@ -867,6 +862,11 @@ def optimize_path_signal_harvesting(
             A[g, j] -= eps
             grad_norms_per_group.append(float(grad_A[g].norm()))
 
+        # Normalize gradient to have unit norm, then scale by lr
+        grad_norm = grad_A.norm()
+        if grad_norm > 1e-8:
+            grad_A = grad_A / grad_norm
+
         vel_A = momentum * vel_A + grad_A
         A = A - lr * vel_A
 
@@ -874,12 +874,10 @@ def optimize_path_signal_harvesting(
         obj_history.append(best_obj)
 
         if verbose:
-            mean_g = sum(grad_norms_per_group) / len(grad_norms_per_group)
-            max_g = max(grad_norms_per_group)
             V_now = _V_from_A(A)
             print(f"  path_opt iter {it:2d}/{n_iter}  "
                   f"obj={obj:+.6f}  best={best_obj:+.6f}  "
-                  f"|∇A|={float(grad_A.norm()):.4f}  "
+                  f"|∇A|={float(grad_norm):.4f}  "
                   f"|vel|={float(vel_A.norm()):.4f}  "
                   f"V=[{float(V_now.min()):.2f},{float(V_now.max()):.2f}]  "
                   f"{'✓' if improved else ' '}  {dt:.2f}s")
