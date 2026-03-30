@@ -508,7 +508,7 @@ def _signal_harvesting_path_obj(
 def optimize_path_signal_harvesting(
     model, x, baseline, mu, N=50, G=16, patch_size=14,
     n_iter=15, lr=0.08, lam=1.0,
-    early_stop_patience=3, early_stop_rtol=0.01, verbose=True,
+    early_stop_patience=10, early_stop_rtol=0.01, verbose=True,
 ):
     device = x.device
     delta_x = x - baseline
