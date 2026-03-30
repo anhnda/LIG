@@ -503,7 +503,7 @@ def optimize_path_signal_harvesting(
         print(f"  path_opt done: {len(obj_history)} iters, "
               f"obj {obj_history[0]:+.4f} → {best_obj:+.4f}  "
               f"(Δ={obj_history[0] - best_obj:+.4f})")
-  return _build_path_2d(baseline, delta_x, best_V, gmap, N)
+    return _build_path_2d(baseline, delta_x, best_V, gmap, N)
 
 #The below seems to be potentiall
 # def optimize_path_signal_harvesting(
