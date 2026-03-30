@@ -1100,14 +1100,14 @@ def optimize_path_signal_harvesting(
                 best_V = F.softplus(V_logits).detach().clone()
 
     return _build_path_2d(baseline, delta_x, best_V, gmap, N)
-═════════════════════════════════════════════════════════════════════════════
-§7  JOINT* OPTIMISATION  (Algorithm 1 — Full Signal-Harvesting Solution)
+# ═════════════════════════════════════════════════════════════════════════════
+# §7  JOINT* OPTIMISATION  (Algorithm 1 — Full Signal-Harvesting Solution)
 
-    Alternating minimisation of (Eq. 20):
-      Phase 1 (measure): fix γ, optimise μ via Eq. 24
-      Phase 2 (path):    fix μ, optimise γ via velocity scheduling
-      Each phase monotonically decreases the objective.
-═════════════════════════════════════════════════════════════════════════════
+#     Alternating minimisation of (Eq. 20):
+#       Phase 1 (measure): fix γ, optimise μ via Eq. 24
+#       Phase 2 (path):    fix μ, optimise γ via velocity scheduling
+#       Each phase monotonically decreases the objective.
+# ═════════════════════════════════════════════════════════════════════════════
 
 def joint_star_ig(
     model: nn.Module,
