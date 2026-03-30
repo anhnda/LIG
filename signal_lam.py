@@ -427,7 +427,7 @@ def optimize_path_signal_harvesting(
     stale_count = 0
     prev_best = float("inf")
     obj_history = []
-
+    block_size = 5
     for it in range(n_iter):
         t_it = time.time()
         obj = _obj_of(V)
@@ -441,13 +441,25 @@ def optimize_path_signal_harvesting(
         # Stochastic FD: perturb one random time step per group
         grad_V = torch.zeros_like(V)
         grad_norms_per_group = []
+        # for g in range(G):
+        #     k = torch.randint(0, N, (1,)).item()
+        #     V[g, k] += eps
+        #     obj_plus = _obj_of(V)
+        #     grad_V[g, k] = (obj_plus - obj) / eps
+        #     V[g, k] -= eps
+        #     grad_norms_per_group.append(abs(grad_V[g, k].item()))
         for g in range(G):
-            k = torch.randint(0, N, (1,)).item()
-            V[g, k] += eps
-            obj_plus = _obj_of(V)
-            grad_V[g, k] = (obj_plus - obj) / eps
-            V[g, k] -= eps
-            grad_norms_per_group.append(abs(grad_V[g, k].item()))
+                # Random block start
+                k0 = torch.randint(0, N - block_size + 1, (1,)).item()
+                k1 = k0 + block_size
+                
+                # Perturb the block with a structured pattern
+                z = torch.randn(block_size, device=device)
+                z = z / z.norm() * block_size**0.5  # scale so per-element magnitude ~ eps
+                
+                V[g, k0:k1] += eps * z
+                obj_plus = _obj_of(V)
+                V[g, k0:k1] -= eps * z
 
         V = V - lr * grad_V
         V = torch.clamp(V, min=0.01)
