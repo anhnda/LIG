@@ -406,7 +406,7 @@ def optimize_path_signal_harvesting(
     n_iter: int = 15,
     lr: float = 0.08,
     lam: float = 1.0,
-    early_stop_patience: int = 3,
+    early_stop_patience: int = 10,
     early_stop_rtol: float = 0.01,
     verbose: bool = True,
 ):
