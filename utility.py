@@ -593,7 +593,54 @@ def set_seed(seed: int = 42):
     # Ensure deterministic behavior (slower but reproducible)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+def load_image_batch(backbone, device, n, min_conf=0.70):
+    """Load n valid images in one pass, no repeats."""
+    import torchvision.transforms as T
+    from PIL import Image
 
+    tf = T.Compose([
+        T.Resize(256), T.CenterCrop(224), T.ToTensor(),
+        T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
+
+    results = []
+
+    for sample_dir in ["./sample_imagenet1k", "../sample_imagenet1k",
+                       os.path.expanduser("~/sample_imagenet1k")]:
+        if not os.path.isdir(sample_dir):
+            continue
+
+        # Sorted, NO shuffle → deterministic
+        jpegs = sorted([f for f in os.listdir(sample_dir)
+                        if f.lower().endswith(('.jpeg', '.jpg', '.png'))])
+        print(f"Found {sample_dir} ({len(jpegs)} images), need {n} valid")
+        
+        random.shuffle(jpegs)  # Shuffle to get variety across runs, but deterministic order within a run
+        for fname in jpegs:
+            if len(results) >= n:
+                break
+            try:
+                img = Image.open(os.path.join(sample_dir, fname)).convert("RGB")
+            except Exception:
+                continue
+
+            xc = tf(img).unsqueeze(0).to(device)
+            with torch.no_grad():
+                p = F.softmax(backbone(xc), dim=-1)
+                c, pr = p[0].max(0)
+
+            if c.item() >= min_conf:
+                results.append((xc, pr.item(), c.item(),
+                                f"{sample_dir}/{fname}", None))
+                print(f"  [{len(results)}] {fname} → class={pr.item()}, conf={c.item():.4f}")
+
+        if len(results) >= n:
+            break
+
+    if len(results) < n:
+        print(f"Warning: only found {len(results)}/{n} valid images")
+
+    return results
 
 def load_image(backbone: nn.Module, device: torch.device, min_conf: float = 0.70, skip: int = 0):
     """

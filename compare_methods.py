@@ -250,12 +250,12 @@ def compare_methods_batch(
     image_info_list = []
 
     # Run on n_test images
-    for img_idx in range(n_test):
-        print(f"\n--- Image {img_idx + 1}/{n_test} ---")
+    from utility import load_image_batch
+    image_batch = load_image_batch(backbone, dev, n=n_test, min_conf=min_conf)
+    image_batch = image_batch[:n_test]  # Ensure we only take n_test images even if more are available
+    for img_idx, (x, target_class, confidence, source, class_name) in enumerate(image_batch):
 
-        # Load image
-        x, target_class, confidence, source, class_name = load_image(
-            backbone, dev, min_conf=min_conf, skip=img_idx)
+        print(f"\n--- Image {img_idx + 1}/{n_test} ---")
 
         image_info_list.append({
             'index': img_idx,
