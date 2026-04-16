@@ -1,19 +1,3 @@
-"""
-idig.py - Integrated Directed Integrated Gradients (Sikdar et al., 2021)
-=========================================================================
-
-IDGI: weighted measure μ_k ∝ |Δf_k|, straight-line path.
-Algorithm: I_i += g_i² * d / ‖g‖²
-
-Usage:
-    from idig import compute_idig
-
-    attribution_result = compute_idig(
-        model=model,
-        input=x,
-        params={'baseline': baseline, 'N': 50}
-    )
-"""
 
 from __future__ import annotations
 
@@ -29,7 +13,7 @@ from utility import (
 )
 
 
-def compute_idig(
+def compute_idgi(
     model: nn.Module,
     input: torch.Tensor,
     params: dict,

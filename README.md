@@ -73,9 +73,9 @@ Three related metrics derived from step fidelity φ_k = d_k / Δf_k:
 ```
 utility.py          Common utilities, metrics, optimization functions
 ig.py               Standard IG: compute_ig(model, input, params)
-idig.py             IDGI: compute_idig(model, input, params)
+idgi.py             IDGI: compute_idgi(model, input, params)
 guided_ig.py        Guided IG: compute_guided_ig(model, input, params)
-lig_idig.py         μ-Optimizer: compute_lig_idig(model, input, params)
+lig_idgi.py         μ-Optimizer: compute_lig_idgi(model, input, params)
 lig.py              LIG (Joint*): compute_lig(model, input, params)
 compare_methods.py  Evaluation framework with multiple models and metrics
 example_usage.py    Example scripts demonstrating usage
@@ -90,7 +90,7 @@ example_usage.py    Example scripts demonstrating usage
 ```python
 from utility import ClassLogitModel, get_device
 from ig import compute_ig
-from idig import compute_idig
+from idgi import compute_idgi
 from guided_ig import compute_guided_ig
 from lig import compute_lig
 
@@ -103,7 +103,7 @@ baseline = torch.zeros_like(x)
 result_ig = compute_ig(model, x, {'baseline': baseline, 'N': 50})
 
 # Run IDGI
-result_idig = compute_idig(model, x, {'baseline': baseline, 'N': 50})
+result_idgi = compute_idgi(model, x, {'baseline': baseline, 'N': 50})
 
 # Run Guided IG
 result_guided = compute_guided_ig(model, x, {'baseline': baseline, 'N': 50})
@@ -132,7 +132,7 @@ print(f"LIG: Q={result_lig.Q:.4f}, Ins-Del={result_lig.insdel.insertion_auc - re
 python compare_methods.py --model resnet50 --image path/to/image.jpg
 
 # Use specific methods
-python compare_methods.py --methods ig idig guided_ig lig --steps 50 --image path/to/image.jpg
+python compare_methods.py --methods ig idgi guided_ig lig --steps 50 --image path/to/image.jpg
 
 # Try different models
 python compare_methods.py --model vgg16 --image path/to/image.jpg
@@ -153,7 +153,7 @@ python compare_methods.py --n-test 50 --min-conf 0.80 --json results.json
 
 # Full benchmark with all options
 python compare_methods.py --model resnet50 --n-test 30 \
-    --methods ig idig guided_ig lig --steps 50 \
+    --methods ig idgi guided_ig lig --steps 50 \
     --min-conf 0.70 --json benchmark_results.json
 ```
 

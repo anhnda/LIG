@@ -1,5 +1,5 @@
 """
-lig_idig.py - μ-Optimized IG with Signal Harvesting (u-Optimizer)
+lig_idgi.py - μ-Optimized IG with Signal Harvesting (u-Optimizer)
 ==================================================================
 
 μ-Optimized IG: optimized measure μ*, straight-line path.
@@ -9,9 +9,9 @@ This is the signal-harvesting variant that combines conservation with
 signal harvesting. Also known as "u-Optimizer" in the paper.
 
 Usage:
-    from lig_idig import compute_lig_idig
+    from lig_idgi import compute_lig_idgi
 
-    attribution_result = compute_lig_idig(
+    attribution_result = compute_lig_idgi(
         model=model,
         input=x,
         params={'baseline': baseline, 'N': 50, 'lam': 1.0, 'tau': 0.01}
@@ -33,7 +33,7 @@ from utility import (
 )
 
 
-def compute_lig_idig(
+def compute_lig_idgi(
     model: nn.Module,
     input: torch.Tensor,
     params: dict,

@@ -1,18 +1,3 @@
-"""
-guided_ig.py - Guided Integrated Gradients (Kapishnikov et al., 2021)
-======================================================================
-
-Guided IG: uniform measure μ, adaptive path that follows low-gradient directions first.
-
-Usage:
-    from guided_ig import compute_guided_ig
-
-    attribution_result = compute_guided_ig(
-        model=model,
-        input=x,
-        params={'baseline': baseline, 'N': 50}
-    )
-"""
 
 from __future__ import annotations
 
@@ -100,5 +85,5 @@ def compute_guided_ig(
 
     mu = torch.full((N,), 1.0 / N, device=device)
     result = _pack_result("Guided IG", attr, d_list, df_list, f_vals,
-                          gnorms, mu, N, t0)
+                          gnorms, mu, N, t0, gamma_pts=gamma_pts)
     return result
