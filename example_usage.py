@@ -12,10 +12,10 @@ from PIL import Image
 
 # Import methods
 from ig import compute_ig
-from idig import compute_idig
+from idgi import compute_idgi
 from guided_ig import compute_guided_ig
 from lig import compute_lig
-from lig_idig import compute_lig_idig
+from lig_idgi import compute_lig_idgi
 
 # Import utilities
 from utility import ClassLogitModel, get_device, compute_insertion_deletion, set_seed
@@ -64,9 +64,9 @@ def example_basic():
           f"time={result_ig.elapsed_s:.2f}s\n")
 
     print("2. IDGI...")
-    result_idig = compute_idig(model, x, params)
-    print(f"   Q={result_idig.Q:.4f}, CV²={result_idig.CV2:.4f}, "
-          f"time={result_idig.elapsed_s:.2f}s\n")
+    result_idgi = compute_idgi(model, x, params)
+    print(f"   Q={result_idgi.Q:.4f}, CV²={result_idgi.CV2:.4f}, "
+          f"time={result_idgi.elapsed_s:.2f}s\n")
 
     print("3. Guided IG...")
     result_guided = compute_guided_ig(model, x, params)
@@ -74,16 +74,16 @@ def example_basic():
           f"time={result_guided.elapsed_s:.2f}s\n")
 
     print("4. LIG-IDIG (μ-Optimizer)...")
-    params_lig_idig = {
+    params_lig_idgi = {
         'baseline': baseline,
         'N': 50,
         'lam': 1.0,
         'tau': 0.01,
         'n_iter': 300,
     }
-    result_lig_idig = compute_lig_idig(model, x, params_lig_idig)
-    print(f"   Q={result_lig_idig.Q:.4f}, CV²={result_lig_idig.CV2:.4f}, "
-          f"time={result_lig_idig.elapsed_s:.2f}s\n")
+    result_lig_idgi = compute_lig_idgi(model, x, params_lig_idgi)
+    print(f"   Q={result_lig_idgi.Q:.4f}, CV²={result_lig_idgi.CV2:.4f}, "
+          f"time={result_lig_idgi.elapsed_s:.2f}s\n")
 
     print("Done!\n")
 
@@ -120,7 +120,7 @@ def example_with_evaluation():
     model = ClassLogitModel(backbone, target_class)
 
     # Run methods
-    methods = ['ig', 'idig', 'guided_ig']
+    methods = ['ig', 'idgi', 'guided_ig']
     results = []
 
     print("Running methods...\n")
@@ -129,8 +129,8 @@ def example_with_evaluation():
 
         if method_name == 'ig':
             result = compute_ig(model, x, params)
-        elif method_name == 'idig':
-            result = compute_idig(model, x, params)
+        elif method_name == 'idgi':
+            result = compute_idgi(model, x, params)
         elif method_name == 'guided_ig':
             result = compute_guided_ig(model, x, params)
 

@@ -11,7 +11,7 @@ Model options: ResNet50, VGG16, DenseNet121, ViT-B-16
 
 Usage:
     python compare_methods.py --model resnet50 --image path/to/image.jpg
-    python compare_methods.py --methods ig idig guided_ig lig --metrics insertion deletion
+    python compare_methods.py --methods ig idgi guided_ig lig --metrics insertion deletion
 """
 
 from __future__ import annotations
@@ -28,10 +28,12 @@ from PIL import Image
 
 # Import attribution methods
 from ig import compute_ig
-from idig import compute_idig
+from idgi import compute_idgi
 from guided_ig import compute_guided_ig
 from lig import compute_lig
-from lig_idig import compute_lig_idig
+from lig_idgi import compute_lig_idgi
+from idgi_standard import compute_idgi_standard
+from guided_ig_standard import compute_guided_ig_standard
 
 # Import utilities
 from utility import (
@@ -71,9 +73,21 @@ def load_model(model_name: str, device: torch.device) -> nn.Module:
         model = models.densenet121(weights=models.DenseNet121_Weights.IMAGENET1K_V1)
     elif model_name == 'vit_b_16':
         model = models.vit_b_16(weights=models.ViT_B_16_Weights.IMAGENET1K_V1)
+    elif model_name == 'inception_v3':
+        model = models.inception_v3(weights=models.Inception_V3_Weights.IMAGENET1K_V1)
+        model.aux_logits = False
+    elif model_name == 'swin_b':
+        model = models.swin_b(weights=models.Swin_B_Weights.IMAGENET1K_V1)
+    elif model_name == 'convnext_base':
+        model = models.convnext_base(weights=models.ConvNeXt_Base_Weights.IMAGENET1K_V1)
+    elif model_name == 'efficientnet_b0':
+        model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.IMAGENET1K_V1)
+    elif model_name == 'mobilenet_v2':
+        model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.IMAGENET1K_V2)
     else:
         raise ValueError(f"Unknown model: {model_name}. "
-                         f"Choose from: resnet50, vgg16, densenet121, vit_b_16")
+                         f"Choose from: resnet50, vgg16, densenet121, vit_b_16, "
+                         f"inception_v3, swin_b, convnext_base, efficientnet_b0, mobilenet_v2")
 
     model = model.to(device)
     model.eval()
@@ -148,7 +162,7 @@ def run_method(
     Run a specific attribution method.
 
     Args:
-        method_name: Name of method ('ig', 'idig', 'guided_ig', 'lig', 'lig_idig')
+        method_name: Name of method ('ig', 'idgi', 'guided_ig', 'lig', 'lig_idgi')
         model: Wrapped model (ClassLogitModel)
         x: Input tensor
         baseline: Baseline tensor
@@ -164,10 +178,16 @@ def run_method(
 
     if method_name == 'ig':
         return compute_ig(model, x, params)
-    elif method_name == 'idig':
-        return compute_idig(model, x, params)
+    elif method_name == 'idgi':
+        return compute_idgi(model, x, params)
     elif method_name == 'guided_ig':
         return compute_guided_ig(model, x, params)
+    elif method_name == 'idgi_standard':
+        return compute_idgi_standard(model, x, params)
+    elif method_name == 'guided_ig_standard':
+        params.setdefault('fraction', 0.25)
+        params.setdefault('max_dist', 0.02)
+        return compute_guided_ig_standard(model, x, params)
     elif method_name == 'lig':
         params.update({
             'lam': 1.0,
@@ -179,13 +199,13 @@ def run_method(
             'path_iter': 10,
         })
         return compute_lig(model, x, params)
-    elif method_name == 'lig_idig':
+    elif method_name == 'lig_idgi':
         params.update({
             'lam': 1.0,
             'tau': 0.01,
             'n_iter': 300,
         })
-        return compute_lig_idig(model, x, params)
+        return compute_lig_idgi(model, x, params)
     else:
         raise ValueError(f"Unknown method: {method_name}")
 
@@ -226,7 +246,7 @@ def compare_methods_batch(
 
     # Default methods and metrics
     if methods is None:
-        methods = ['ig', 'idig', 'guided_ig', 'lig']
+        methods = ['ig', 'idgi', 'guided_ig', 'lig']
     if metrics is None:
         metrics = ['insertion', 'deletion', 'ins-del']
 
@@ -381,7 +401,7 @@ def compare_methods(
 
     # Default methods and metrics
     if methods is None:
-        methods = ['ig', 'idig', 'guided_ig', 'lig']
+        methods = ['ig', 'idgi', 'guided_ig', 'lig']
     if metrics is None:
         metrics = ['insertion', 'deletion', 'ins-del']
 
@@ -476,9 +496,9 @@ def main():
                         help='Target class index (default: use predicted class)')
 
     parser.add_argument('--methods', type=str, nargs='+',
-                        default=['ig', 'idig', 'guided_ig', 'lig'],
-                        choices=['ig', 'idig', 'guided_ig', 'lig', 'lig_idig'],
-                        help='Methods to compare (default: ig idig guided_ig lig)')
+                        default=['ig', 'idgi', 'guided_ig', 'lig'],
+                        choices=['ig', 'idgi', 'guided_ig', 'idgi_standard', 'guided_ig_standard', 'lig', 'lig_idgi'],
+                        help='Methods to compare (default: ig idgi guided_ig lig)')
 
     parser.add_argument('--metrics', type=str, nargs='+',
                         default=['insertion', 'deletion', 'ins-del'],

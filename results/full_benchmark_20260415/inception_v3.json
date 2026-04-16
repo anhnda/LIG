@@ -1,0 +1,640 @@
+{
+  "config": {
+    "model": "inception_v3",
+    "n_test": 50,
+    "N": 50,
+    "min_conf": 0.75,
+    "methods": [
+      "ig",
+      "idig",
+      "guided_ig",
+      "guided_ig_standard",
+      "idgi_standard",
+      "lig"
+    ],
+    "metrics": [
+      "insertion",
+      "deletion",
+      "ins-del"
+    ],
+    "seed": 42
+  },
+  "statistics": {
+    "ig": {
+      "Q": {
+        "mean": 0.7060890596653556,
+        "std": 0.21024075998555178,
+        "min": 0.10028760041743123,
+        "max": 0.981869583679555
+      },
+      "Var_nu": {
+        "mean": 0.347763643078506,
+        "std": 0.34536871563770455,
+        "min": 0.017174160107970238,
+        "max": 1.5468940734863281
+      },
+      "CV2": {
+        "mean": 0.8102225460774468,
+        "std": 1.6471889657932886,
+        "min": 0.018465198048503755,
+        "max": 8.971322435053372
+      },
+      "insertion_auc": {
+        "mean": 0.6115249230922367,
+        "std": 0.2265700888800006,
+        "min": 0.07064922978315066,
+        "max": 1.0943561354520555
+      },
+      "deletion_auc": {
+        "mean": 0.206205766225219,
+        "std": 0.1376612288461578,
+        "min": -0.03217199002812581,
+        "max": 0.5704314690103236
+      },
+      "ins_del": {
+        "mean": 0.4053191568670176,
+        "std": 0.24009767799025272,
+        "min": -0.06089133442803957,
+        "max": 0.9013975741597408
+      },
+      "time": {
+        "mean": 0.12012094020843506,
+        "std": 0.2426992336771701,
+        "min": 0.08477663993835449,
+        "max": 1.8190128803253174
+      }
+    },
+    "idig": {
+      "Q": {
+        "mean": 0.8055530727268936,
+        "std": 0.1954350511876674,
+        "min": 0.16116066476042065,
+        "max": 0.9901900288028412
+      },
+      "Var_nu": {
+        "mean": 0.1962919719144702,
+        "std": 0.2992252587571139,
+        "min": 0.009319033473730087,
+        "max": 1.6093406677246094
+      },
+      "CV2": {
+        "mean": 0.44817198746494563,
+        "std": 0.9548941639166505,
+        "min": 0.00990716015290438,
+        "max": 5.204988056400654
+      },
+      "insertion_auc": {
+        "mean": 0.6209136210241286,
+        "std": 0.19465144102729645,
+        "min": 0.10932122019950066,
+        "max": 0.9471698576273674
+      },
+      "deletion_auc": {
+        "mean": 0.1855188966930644,
+        "std": 0.12333111544195811,
+        "min": -0.0764437698940887,
+        "max": 0.5256664961631481
+      },
+      "ins_del": {
+        "mean": 0.43539472433106413,
+        "std": 0.1987033708039664,
+        "min": 0.005211944429511117,
+        "max": 0.8564565523331801
+      },
+      "time": {
+        "mean": 0.08577281951904298,
+        "std": 0.0011836418121678768,
+        "min": 0.08491659164428711,
+        "max": 0.0933985710144043
+      }
+    },
+    "guided_ig": {
+      "Q": {
+        "mean": 0.06195668003259461,
+        "std": 0.0843794216271581,
+        "min": 2.2691836403824754e-06,
+        "max": 0.3536835839643428
+      },
+      "Var_nu": {
+        "mean": 0.00450086364755407,
+        "std": 0.0028975707855252706,
+        "min": 0.00026174786034971476,
+        "max": 0.013646004721522331
+      },
+      "CV2": {
+        "mean": 13972.627425500488,
+        "std": 64153.328400665785,
+        "min": 1.8273859611782737,
+        "max": 440686.1185760215
+      },
+      "insertion_auc": {
+        "mean": 0.5548704036791329,
+        "std": 0.20046024849419353,
+        "min": 0.1526238707694133,
+        "max": 0.9278373970843785
+      },
+      "deletion_auc": {
+        "mean": 0.23678639994866,
+        "std": 0.15160676796378178,
+        "min": -0.03614596747047689,
+        "max": 0.5949922568270853
+      },
+      "ins_del": {
+        "mean": 0.3180840037304728,
+        "std": 0.19101100856876455,
+        "min": 0.026685419076472705,
+        "max": 0.7829597868318127
+      },
+      "time": {
+        "mean": 2.433881916999817,
+        "std": 0.10621388184308236,
+        "min": 2.3827545642852783,
+        "max": 3.1661765575408936
+      }
+    },
+    "guided_ig_standard": {
+      "Q": {
+        "mean": 0.5922000426035481,
+        "std": 0.22830217817474083,
+        "min": 0.0014282587275721488,
+        "max": 0.9562139768390624
+      },
+      "Var_nu": {
+        "mean": 0.590953456312418,
+        "std": 0.5770980984711332,
+        "min": 0.05589979887008667,
+        "max": 3.189725160598755
+      },
+      "CV2": {
+        "mean": 15.305292254497667,
+        "std": 97.73069279021458,
+        "min": 0.045791030273035896,
+        "max": 699.1532570361869
+      },
+      "insertion_auc": {
+        "mean": 0.6181682943089428,
+        "std": 0.22710602882107447,
+        "min": 0.08973819490362332,
+        "max": 0.9874421980431287
+      },
+      "deletion_auc": {
+        "mean": 0.19716904055790865,
+        "std": 0.14307307254984752,
+        "min": -0.053413639858830284,
+        "max": 0.6272685618954432
+      },
+      "ins_del": {
+        "mean": 0.4209992537510341,
+        "std": 0.23811639022443323,
+        "min": -0.058255925088991134,
+        "max": 0.9081924455413215
+      },
+      "time": {
+        "mean": 2.5676128482818603,
+        "std": 0.01737029083400519,
+        "min": 2.5278353691101074,
+        "max": 2.6338374614715576
+      }
+    },
+    "idgi_standard": {
+      "Q": {
+        "mean": 0.8158320585396828,
+        "std": 0.13734258107124958,
+        "min": 0.4813899693557163,
+        "max": 0.9959036889905705
+      },
+      "Var_nu": {
+        "mean": 0.2139735893253237,
+        "std": 0.2880897969657848,
+        "min": 0.0007367511279881,
+        "max": 1.8156654834747314
+      },
+      "CV2": {
+        "mean": 0.2677470560848497,
+        "std": 0.25389202876284706,
+        "min": 0.004113159791165605,
+        "max": 1.0773178995365897
+      },
+      "insertion_auc": {
+        "mean": 0.6234722398973126,
+        "std": 0.19057962075075838,
+        "min": 0.10368278252843882,
+        "max": 0.950401224963838
+      },
+      "deletion_auc": {
+        "mean": 0.18534137659149322,
+        "std": 0.12975814795219162,
+        "min": -0.07797670563406961,
+        "max": 0.5717705853075679
+      },
+      "ins_del": {
+        "mean": 0.4381308633058194,
+        "std": 0.20379945169603303,
+        "min": -0.06444951503285434,
+        "max": 0.8646802930665942
+      },
+      "time": {
+        "mean": 2.3960433197021485,
+        "std": 0.02091908804996428,
+        "min": 2.3666088581085205,
+        "max": 2.4906868934631348
+      }
+    },
+    "lig": {
+      "Q": {
+        "mean": 0.9717378933298142,
+        "std": 0.14449358497944156,
+        "min": 0.0508426236071978,
+        "max": 0.99995075945633
+      },
+      "Var_nu": {
+        "mean": 0.0733543161412672,
+        "std": 0.3614815413152186,
+        "min": 4.863767753704451e-05,
+        "max": 2.2512381076812744
+      },
+      "CV2": {
+        "mean": 0.3890404599435023,
+        "std": 2.613445154140994,
+        "min": 4.924296842038083e-05,
+        "max": 18.668536535916093
+      },
+      "insertion_auc": {
+        "mean": 0.6334758340472288,
+        "std": 0.2369234664928987,
+        "min": 0.0825054657433156,
+        "max": 1.085804448027273
+      },
+      "deletion_auc": {
+        "mean": 0.18243106893247232,
+        "std": 0.14630223037367424,
+        "min": -0.03854710626704717,
+        "max": 0.5950326201752576
+      },
+      "ins_del": {
+        "mean": 0.45104476511475666,
+        "std": 0.2492101657719115,
+        "min": -0.14100142406005478,
+        "max": 0.9060395865822322
+      },
+      "time": {
+        "mean": 12.850737500190736,
+        "std": 0.073827107352027,
+        "min": 12.766950845718384,
+        "max": 13.207516431808472
+      }
+    }
+  },
+  "images": [
+    {
+      "index": 0,
+      "source": "./sample_imagenet1k/n04141076_sax.JPEG",
+      "target_class": 776,
+      "confidence": 0.9956914782524109,
+      "class_name": null
+    },
+    {
+      "index": 1,
+      "source": "./sample_imagenet1k/n03075370_combination_lock.JPEG",
+      "target_class": 507,
+      "confidence": 0.9998540878295898,
+      "class_name": null
+    },
+    {
+      "index": 2,
+      "source": "./sample_imagenet1k/n04552348_warplane.JPEG",
+      "target_class": 895,
+      "confidence": 0.9887052178382874,
+      "class_name": null
+    },
+    {
+      "index": 3,
+      "source": "./sample_imagenet1k/n02980441_castle.JPEG",
+      "target_class": 483,
+      "confidence": 0.9999809265136719,
+      "class_name": null
+    },
+    {
+      "index": 4,
+      "source": "./sample_imagenet1k/n04033995_quilt.JPEG",
+      "target_class": 750,
+      "confidence": 0.7899389266967773,
+      "class_name": null
+    },
+    {
+      "index": 5,
+      "source": "./sample_imagenet1k/n03141823_crutch.JPEG",
+      "target_class": 523,
+      "confidence": 1.0,
+      "class_name": null
+    },
+    {
+      "index": 6,
+      "source": "./sample_imagenet1k/n02093991_Irish_terrier.JPEG",
+      "target_class": 185,
+      "confidence": 0.756273627281189,
+      "class_name": null
+    },
+    {
+      "index": 7,
+      "source": "./sample_imagenet1k/n04263257_soup_bowl.JPEG",
+      "target_class": 809,
+      "confidence": 0.9999430179595947,
+      "class_name": null
+    },
+    {
+      "index": 8,
+      "source": "./sample_imagenet1k/n02783161_ballpoint.JPEG",
+      "target_class": 650,
+      "confidence": 0.9207803010940552,
+      "class_name": null
+    },
+    {
+      "index": 9,
+      "source": "./sample_imagenet1k/n03623198_knee_pad.JPEG",
+      "target_class": 560,
+      "confidence": 0.893614649772644,
+      "class_name": null
+    },
+    {
+      "index": 10,
+      "source": "./sample_imagenet1k/n03837869_obelisk.JPEG",
+      "target_class": 682,
+      "confidence": 0.9998785257339478,
+      "class_name": null
+    },
+    {
+      "index": 11,
+      "source": "./sample_imagenet1k/n03045698_cloak.JPEG",
+      "target_class": 614,
+      "confidence": 0.9395448565483093,
+      "class_name": null
+    },
+    {
+      "index": 12,
+      "source": "./sample_imagenet1k/n04070727_refrigerator.JPEG",
+      "target_class": 760,
+      "confidence": 0.9985349178314209,
+      "class_name": null
+    },
+    {
+      "index": 13,
+      "source": "./sample_imagenet1k/n01697457_African_crocodile.JPEG",
+      "target_class": 49,
+      "confidence": 0.8902007341384888,
+      "class_name": null
+    },
+    {
+      "index": 14,
+      "source": "./sample_imagenet1k/n03976467_Polaroid_camera.JPEG",
+      "target_class": 732,
+      "confidence": 0.9999597072601318,
+      "class_name": null
+    },
+    {
+      "index": 15,
+      "source": "./sample_imagenet1k/n02361337_marmot.JPEG",
+      "target_class": 336,
+      "confidence": 0.9999983310699463,
+      "class_name": null
+    },
+    {
+      "index": 16,
+      "source": "./sample_imagenet1k/n02860847_bobsled.JPEG",
+      "target_class": 450,
+      "confidence": 1.0,
+      "class_name": null
+    },
+    {
+      "index": 17,
+      "source": "./sample_imagenet1k/n04204238_shopping_basket.JPEG",
+      "target_class": 790,
+      "confidence": 0.999848484992981,
+      "class_name": null
+    },
+    {
+      "index": 18,
+      "source": "./sample_imagenet1k/n02417914_ibex.JPEG",
+      "target_class": 350,
+      "confidence": 0.9997894167900085,
+      "class_name": null
+    },
+    {
+      "index": 19,
+      "source": "./sample_imagenet1k/n02927161_butcher_shop.JPEG",
+      "target_class": 499,
+      "confidence": 0.9956932663917542,
+      "class_name": null
+    },
+    {
+      "index": 20,
+      "source": "./sample_imagenet1k/n03657121_lens_cap.JPEG",
+      "target_class": 622,
+      "confidence": 0.9999942779541016,
+      "class_name": null
+    },
+    {
+      "index": 21,
+      "source": "./sample_imagenet1k/n03344393_fireboat.JPEG",
+      "target_class": 554,
+      "confidence": 0.9999994039535522,
+      "class_name": null
+    },
+    {
+      "index": 22,
+      "source": "./sample_imagenet1k/n02480495_orangutan.JPEG",
+      "target_class": 365,
+      "confidence": 0.9989266991615295,
+      "class_name": null
+    },
+    {
+      "index": 23,
+      "source": "./sample_imagenet1k/n04120489_running_shoe.JPEG",
+      "target_class": 770,
+      "confidence": 0.9999998807907104,
+      "class_name": null
+    },
+    {
+      "index": 24,
+      "source": "./sample_imagenet1k/n03680355_Loafer.JPEG",
+      "target_class": 630,
+      "confidence": 0.9999123811721802,
+      "class_name": null
+    },
+    {
+      "index": 25,
+      "source": "./sample_imagenet1k/n07716906_spaghetti_squash.JPEG",
+      "target_class": 940,
+      "confidence": 0.9999970197677612,
+      "class_name": null
+    },
+    {
+      "index": 26,
+      "source": "./sample_imagenet1k/n04235860_sleeping_bag.JPEG",
+      "target_class": 797,
+      "confidence": 0.9985529780387878,
+      "class_name": null
+    },
+    {
+      "index": 27,
+      "source": "./sample_imagenet1k/n03026506_Christmas_stocking.JPEG",
+      "target_class": 496,
+      "confidence": 0.9999921321868896,
+      "class_name": null
+    },
+    {
+      "index": 28,
+      "source": "./sample_imagenet1k/n07583066_guacamole.JPEG",
+      "target_class": 924,
+      "confidence": 0.9976988434791565,
+      "class_name": null
+    },
+    {
+      "index": 29,
+      "source": "./sample_imagenet1k/n02483708_siamang.JPEG",
+      "target_class": 369,
+      "confidence": 0.9469867944717407,
+      "class_name": null
+    },
+    {
+      "index": 30,
+      "source": "./sample_imagenet1k/n03937543_pill_bottle.JPEG",
+      "target_class": 720,
+      "confidence": 0.9967404007911682,
+      "class_name": null
+    },
+    {
+      "index": 31,
+      "source": "./sample_imagenet1k/n01728920_ringneck_snake.JPEG",
+      "target_class": 53,
+      "confidence": 0.9999980926513672,
+      "class_name": null
+    },
+    {
+      "index": 32,
+      "source": "./sample_imagenet1k/n02794156_barometer.JPEG",
+      "target_class": 426,
+      "confidence": 0.9693719148635864,
+      "class_name": null
+    },
+    {
+      "index": 33,
+      "source": "./sample_imagenet1k/n04127249_safety_pin.JPEG",
+      "target_class": 772,
+      "confidence": 0.9999514818191528,
+      "class_name": null
+    },
+    {
+      "index": 34,
+      "source": "./sample_imagenet1k/n02094114_Norfolk_terrier.JPEG",
+      "target_class": 185,
+      "confidence": 0.999756395816803,
+      "class_name": null
+    },
+    {
+      "index": 35,
+      "source": "./sample_imagenet1k/n02917067_bullet_train.JPEG",
+      "target_class": 466,
+      "confidence": 0.9999778270721436,
+      "class_name": null
+    },
+    {
+      "index": 36,
+      "source": "./sample_imagenet1k/n04201297_shoji.JPEG",
+      "target_class": 789,
+      "confidence": 0.9999984502792358,
+      "class_name": null
+    },
+    {
+      "index": 37,
+      "source": "./sample_imagenet1k/n02091467_Norwegian_elkhound.JPEG",
+      "target_class": 235,
+      "confidence": 0.9946592450141907,
+      "class_name": null
+    },
+    {
+      "index": 38,
+      "source": "./sample_imagenet1k/n02077923_sea_lion.JPEG",
+      "target_class": 150,
+      "confidence": 0.9999992847442627,
+      "class_name": null
+    },
+    {
+      "index": 39,
+      "source": "./sample_imagenet1k/n03998194_prayer_rug.JPEG",
+      "target_class": 741,
+      "confidence": 0.9878153800964355,
+      "class_name": null
+    },
+    {
+      "index": 40,
+      "source": "./sample_imagenet1k/n01944390_snail.JPEG",
+      "target_class": 113,
+      "confidence": 0.999995231628418,
+      "class_name": null
+    },
+    {
+      "index": 41,
+      "source": "./sample_imagenet1k/n02797295_barrow.JPEG",
+      "target_class": 428,
+      "confidence": 1.0,
+      "class_name": null
+    },
+    {
+      "index": 42,
+      "source": "./sample_imagenet1k/n07880968_burrito.JPEG",
+      "target_class": 965,
+      "confidence": 0.9980995059013367,
+      "class_name": null
+    },
+    {
+      "index": 43,
+      "source": "./sample_imagenet1k/n01582220_magpie.JPEG",
+      "target_class": 18,
+      "confidence": 0.9899091720581055,
+      "class_name": null
+    },
+    {
+      "index": 44,
+      "source": "./sample_imagenet1k/n02095570_Lakeland_terrier.JPEG",
+      "target_class": 189,
+      "confidence": 0.9980594515800476,
+      "class_name": null
+    },
+    {
+      "index": 45,
+      "source": "./sample_imagenet1k/n02769748_backpack.JPEG",
+      "target_class": 414,
+      "confidence": 0.9999957084655762,
+      "class_name": null
+    },
+    {
+      "index": 46,
+      "source": "./sample_imagenet1k/n03483316_hand_blower.JPEG",
+      "target_class": 589,
+      "confidence": 0.9999997615814209,
+      "class_name": null
+    },
+    {
+      "index": 47,
+      "source": "./sample_imagenet1k/n03786901_mortar.JPEG",
+      "target_class": 666,
+      "confidence": 0.9999909400939941,
+      "class_name": null
+    },
+    {
+      "index": 48,
+      "source": "./sample_imagenet1k/n04086273_revolver.JPEG",
+      "target_class": 763,
+      "confidence": 0.9843742251396179,
+      "class_name": null
+    },
+    {
+      "index": 49,
+      "source": "./sample_imagenet1k/n02102973_Irish_water_spaniel.JPEG",
+      "target_class": 221,
+      "confidence": 0.999987006187439,
+      "class_name": null
+    }
+  ]
+}

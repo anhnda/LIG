@@ -215,4 +215,5 @@ def compute_lig(
     attr = _rescale(attr, target)
 
     return _pack_result("LIG", attr, best_d_list, best_df_list,
-                        best_f_vals, best_gnorms, mu, N, t0, Q_history)
+                        best_f_vals, best_gnorms, mu, N, t0, Q_history,
+                        gamma_pts=gamma_pts)

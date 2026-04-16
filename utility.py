@@ -40,6 +40,7 @@ class StepInfo:
     phi_k: float
     grad_norm: float
     mu_k: float
+    prob: float = 0.0          # softmax P(target_class | γₖ); filled by callers (e.g. web_api.py)
 
 
 @dataclass
@@ -64,6 +65,8 @@ class AttributionResult:
     elapsed_s: float = 0.0
     insdel: Optional[InsDelScores] = None
     region_insdel: Optional[InsDelScores] = None
+    # Path γ₀..γ_N for visualization (None ⇒ straight line, callers can rebuild).
+    gamma_pts: Optional[list] = None
 
     def to_dict(self) -> dict:
         d = {
@@ -198,7 +201,7 @@ def _build_steps(d_list, df_list, f_vals, gnorms, mu, N) -> list[StepInfo]:
 
 
 def _pack_result(name, attr, d_list, df_list, f_vals, gnorms, mu, N,
-                 t0, Q_history=None) -> AttributionResult:
+                 t0, Q_history=None, gamma_pts=None) -> AttributionResult:
     """Build AttributionResult with all three metrics in one pass."""
     device = attr.device
     d_arr = torch.tensor(d_list, device=device)
@@ -208,6 +211,7 @@ def _pack_result(name, attr, d_list, df_list, f_vals, gnorms, mu, N,
     return AttributionResult(
         name=name, attributions=attr, Q=Q, CV2=cv2, Var_nu=var_nu,
         steps=steps, Q_history=Q_history or [], elapsed_s=time.time() - t0,
+        gamma_pts=gamma_pts,
     )
 
 
